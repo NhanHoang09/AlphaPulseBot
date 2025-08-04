@@ -265,12 +265,6 @@ Chúng tôi hoan nghênh mọi đóng góp! Vui lòng:
 
 Dự án này được phân phối dưới giấy phép MIT. Xem file `LICENSE` để biết thêm chi tiết.
 
-## 📞 Liên hệ
-
-- **Email**: nhanht2@rikkeisoft.com
-- **Division**: RKH
-- **Project**: AlphaPulseBot
-
 ---
 
 ⭐ **Nếu dự án này hữu ích, hãy cho chúng tôi một star!**
