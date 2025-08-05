@@ -41,7 +41,19 @@ class RiskManager:
         Returns:
             Series volatility
         """
-        return returns.rolling(window=window).std() * np.sqrt(252)
+        # Ensure window is not larger than available data
+        if window > len(returns):
+            window = len(returns)
+        
+        # Calculate rolling volatility
+        volatility = returns.rolling(window=window).std() * np.sqrt(252)
+        
+        # Fill NaN values with overall volatility if needed
+        if volatility.isna().any():
+            overall_vol = returns.std() * np.sqrt(252)
+            volatility = volatility.fillna(overall_vol)
+        
+        return volatility
     
     def calculate_var(self, returns: pd.Series, confidence_level: float = 0.05) -> float:
         """
@@ -272,8 +284,13 @@ class RiskManager:
         if len(returns) < 30:
             return {"error": "Không đủ dữ liệu để tính toán rủi ro"}
         
+        # Adjust window size based on available data
+        window_size = min(252, len(returns) // 2)  # Use smaller window if not enough data
+        if window_size < 30:
+            window_size = len(returns)  # Use all available data if too small
+        
         # Basic metrics
-        volatility = self.calculate_volatility(returns)
+        volatility = self.calculate_volatility(returns, window=window_size)
         var_95 = self.calculate_var(returns, 0.05)
         var_99 = self.calculate_var(returns, 0.01)
         cvar_95 = self.calculate_cvar(returns, 0.05)
@@ -281,9 +298,23 @@ class RiskManager:
         sortino = self.calculate_sortino_ratio(returns)
         max_dd, dd_start, dd_end = self.calculate_max_drawdown(data['Close'])
         
-        # Current metrics
-        current_vol = volatility.iloc[-1] if not volatility.empty else 0
+        # Current metrics - handle NaN values
+        current_vol = volatility.iloc[-1] if not volatility.empty and not pd.isna(volatility.iloc[-1]) else returns.std() * np.sqrt(252)
         current_price = data['Close'].iloc[-1]
+        
+        # Ensure all values are valid numbers
+        if pd.isna(current_vol):
+            current_vol = returns.std() * np.sqrt(252)
+        if pd.isna(var_95):
+            var_95 = returns.quantile(0.05)
+        if pd.isna(cvar_95):
+            cvar_95 = returns[returns <= var_95].mean() if not pd.isna(var_95) else returns.mean()
+        if pd.isna(sharpe):
+            sharpe = 0.0
+        if pd.isna(sortino):
+            sortino = 0.0
+        if pd.isna(max_dd):
+            max_dd = 0.0
         
         return {
             'symbol': symbol,
@@ -322,9 +353,16 @@ class RiskManager:
         if len(returns) < 30:
             return alerts
         
-        # Volatility alert
-        current_vol = self.calculate_volatility(returns).iloc[-1]
-        if current_vol > volatility_threshold:
+        # Adjust window size based on available data
+        window_size = min(252, len(returns) // 2)
+        if window_size < 30:
+            window_size = len(returns)
+        
+        # Volatility alert - handle NaN
+        volatility_series = self.calculate_volatility(returns, window=window_size)
+        current_vol = volatility_series.iloc[-1] if not volatility_series.empty and not pd.isna(volatility_series.iloc[-1]) else returns.std() * np.sqrt(252)
+        
+        if not pd.isna(current_vol) and current_vol > volatility_threshold:
             alerts.append({
                 'type': 'HIGH_VOLATILITY',
                 'message': f'Volatility cao: {current_vol:.2%}',
@@ -332,9 +370,9 @@ class RiskManager:
                 'date': datetime.now()
             })
         
-        # Drawdown alert
+        # Drawdown alert - handle NaN
         current_dd, _, _ = self.calculate_max_drawdown(data['Close'])
-        if current_dd < drawdown_threshold:
+        if not pd.isna(current_dd) and current_dd < drawdown_threshold:
             alerts.append({
                 'type': 'HIGH_DRAWDOWN',
                 'message': f'Drawdown cao: {current_dd:.2%}',
@@ -342,9 +380,9 @@ class RiskManager:
                 'date': datetime.now()
             })
         
-        # VaR alert
+        # VaR alert - handle NaN
         var_95 = self.calculate_var(returns, 0.05)
-        if var_95 < -0.02:  # VaR > 2%
+        if not pd.isna(var_95) and var_95 < -0.02:  # VaR > 2%
             alerts.append({
                 'type': 'HIGH_VAR',
                 'message': f'VaR cao: {var_95:.2%}',

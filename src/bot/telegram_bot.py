@@ -25,6 +25,7 @@ from src.risk.risk_manager import RiskManager
 from src.ai.investment_advisor import AIInvestmentAdvisor
 from src.ai.gpt_assistant import GPTAssistant
 from src.ai.fingpt_model import FinGPTModel
+from src.ai.claude_assistant import ClaudeAssistant
 
 class FinGPTTelegramBot:
     """Telegram Bot cho FinGPT"""
@@ -43,6 +44,14 @@ class FinGPTTelegramBot:
         self.gpt_assistant = GPTAssistant(model_name="gpt_assistant:latest")  # Ollama model
         self.fingpt_model = FinGPTModel()  # Custom FinGPT model
         
+        # Initialize Claude Assistant
+        try:
+            self.claude_assistant = ClaudeAssistant()
+            self.logger.info("Claude Assistant initialized successfully")
+        except Exception as e:
+            self.logger.warning(f"Failed to initialize Claude Assistant: {e}")
+            self.claude_assistant = None
+        
         # User sessions and tracking
         self.user_sessions = {}
         self.welcomed_users = set()  # Track users who have been welcomed
@@ -60,9 +69,9 @@ class FinGPTTelegramBot:
         keyboard = [
             [InlineKeyboardButton("🧠 AI Investment Advisor", callback_data="analyze_stock")],
             [InlineKeyboardButton("🤖 GPT Assistant", callback_data="gpt_assistant")],
+            [InlineKeyboardButton("🤖 Claude AI", callback_data="claude_assistant")],
             [InlineKeyboardButton("📊 Tối ưu Portfolio", callback_data="optimize_portfolio")],
             [InlineKeyboardButton("⚠️ Phân tích rủi ro", callback_data="risk_analysis")],
-            [InlineKeyboardButton("🇻🇳 Thị trường VN", callback_data="vn_market")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
@@ -94,8 +103,9 @@ class FinGPTTelegramBot:
 • `/portfolio <symbols>` - Tối ưu hóa portfolio
 • `/risk <symbol>` - Phân tích rủi ro chi tiết
 
-🤖 **GPT Assistant Commands:**
-• `/ask <question>` - **Hỏi đáp AI** về tài chính
+🤖 **AI Assistant Commands:**
+• `/ask <question>` - **Hỏi đáp GPT** về tài chính
+• `/claude <question>` - **Hỏi đáp Claude AI** về tài chính
 • `/explain <indicator>` - **Giải thích chỉ báo** kỹ thuật
 • `/tips <topic>` - **Lời khuyên đầu tư**
 
@@ -130,9 +140,20 @@ class FinGPTTelegramBot:
 • `/portfolio VNM,TCB,HPG` - Tối ưu portfolio
 • `/risk TCB` - Phân tích rủi ro TCB
 
-🤖 **Ví dụ GPT Assistant:**
+🤖 **Ví dụ AI Assistants:**
+
+**GPT Assistant (Ollama - Miễn phí):**
 • `/ask RSI là gì?` - Hỏi về RSI
 • `/ask Làm thế nào để quản lý rủi ro?` - Hỏi về quản lý rủi ro
+• `/ask Chiến lược đầu tư dài hạn?` - Hỏi về chiến lược
+
+**Claude AI (Anthropic - Có phí):**
+• `/claude RSI là gì?` - Hỏi Claude về RSI
+• `/claude Làm thế nào để quản lý rủi ro?` - Hỏi Claude về quản lý rủi ro
+• `/claude Phân tích xu hướng thị trường VN?` - Phân tích thị trường
+• `/claude So sánh cổ phiếu VNM và TCB?` - So sánh cổ phiếu
+
+**Chung cho cả hai:**
 • `/explain MACD` - Giải thích chỉ báo MACD
 • `/explain Bollinger` - Giải thích Bollinger Bands
 • `/tips general` - Lời khuyên chung
@@ -166,12 +187,23 @@ class FinGPTTelegramBot:
 • Tâm lý thị trường (15%) - Blue-chip, Sector analysis
 • Phân tích khối lượng (5%) - Volume trends
 
-🤖 **GPT Assistant có thể:**
+🤖 **AI Assistants có thể:**
+
+**GPT Assistant (Ollama):**
 • Giải thích các chỉ báo kỹ thuật chi tiết
 • Trả lời câu hỏi về tài chính và đầu tư
 • Đưa ra lời khuyên đầu tư theo chủ đề
 • Phân tích từ khóa thông minh
 • Hỗ trợ học tập và nghiên cứu
+• **Ưu điểm:** Miễn phí, chạy offline, tốc độ nhanh
+
+**Claude AI (Anthropic):**
+• Phân tích tài chính chuyên sâu với độ chính xác cao
+• Trả lời câu hỏi phức tạp về thị trường Việt Nam
+• So sánh và đánh giá cổ phiếu chi tiết
+• Phân tích xu hướng thị trường toàn diện
+• Đưa ra khuyến nghị đầu tư thông minh
+• **Ưu điểm:** Độ chính xác cao, kiến thức cập nhật, trả lời chi tiết
         """
         
         await update.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)
@@ -253,6 +285,29 @@ class FinGPTTelegramBot:
         
         question = " ".join(context.args)
         await self.ask_gpt(update, context, question)
+    
+    async def claude_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Handle /claude command for Claude AI Assistant"""
+        if not self.claude_assistant:
+            await update.message.reply_text(
+                "❌ Claude AI Assistant chưa được khởi tạo!\n"
+                "Vui lòng kiểm tra ANTHROPIC_API_KEY trong file config.",
+                parse_mode=ParseMode.MARKDOWN
+            )
+            return
+            
+        if not context.args:
+            await update.message.reply_text(
+                "❌ Vui lòng nhập câu hỏi!\n"
+                "Ví dụ: `/claude RSI là gì?`\n"
+                "Ví dụ: `/claude Làm thế nào để quản lý rủi ro?`\n"
+                "Ví dụ: `/claude Phân tích xu hướng thị trường VN?`",
+                parse_mode=ParseMode.MARKDOWN
+            )
+            return
+        
+        question = " ".join(context.args)
+        await self.ask_claude(update, context, question)
     
     async def explain_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /explain command for technical indicators"""
@@ -593,7 +648,34 @@ class FinGPTTelegramBot:
                 if not data.empty:
                     returns_data[symbol] = self.risk_manager.calculate_returns(data['Close'])
             
-            if len(returns_data) > 1:
+            if len(returns_data) == 1:
+                # Single stock analysis
+                symbol = list(returns_data.keys())[0]
+                returns = returns_data[symbol]
+                
+                # Calculate metrics for single stock
+                expected_return = returns.mean() * 252
+                volatility = returns.std() * np.sqrt(252)
+                sharpe_ratio = expected_return / volatility if volatility > 0 else 0
+                
+                message = f"""
+📊 **Phân tích Portfolio - {symbol}**
+
+📈 **Kết quả:**
+• Expected Return: {expected_return:.2%}
+• Volatility: {volatility:.2%}
+• Sharpe Ratio: {sharpe_ratio:.2f}
+
+📊 **Khuyến nghị:**
+• {symbol}: 100.0%
+
+💡 **Lưu ý:** Portfolio optimization cần ít nhất 2 cổ phiếu trở lên.
+Ví dụ: `/portfolio VNM,TCB,HPG`
+"""
+                
+                await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
+                
+            elif len(returns_data) > 1:
                 import pandas as pd
                 returns_df = pd.DataFrame(returns_data)
                 portfolio = self.risk_manager.optimize_portfolio(returns_df, 'sharpe')
@@ -614,7 +696,7 @@ class FinGPTTelegramBot:
                 
                 await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
             else:
-                await update.message.reply_text("❌ Không đủ dữ liệu để tối ưu hóa portfolio")
+                await update.message.reply_text("❌ Không thể lấy dữ liệu cho bất kỳ cổ phiếu nào")
                 
         except Exception as e:
             await update.message.reply_text(f"❌ Lỗi khi tối ưu hóa portfolio: {str(e)}")
@@ -666,6 +748,29 @@ class FinGPTTelegramBot:
         except Exception as e:
             await update.message.reply_text(f"❌ Lỗi khi phân tích rủi ro: {str(e)}")
     
+    def _escape_markdown(self, text: str) -> str:
+        """Escape special characters for Markdown parsing"""
+        # Characters that need to be escaped in Markdown
+        escape_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
+        
+        for char in escape_chars:
+            text = text.replace(char, f'\\{char}')
+        
+        return text
+    
+    async def _safe_reply_text(self, update: Update, text: str, parse_mode=ParseMode.MARKDOWN):
+        """Safely reply text with Markdown fallback"""
+        try:
+            await update.message.reply_text(text, parse_mode=parse_mode)
+        except Exception as markdown_error:
+            # If Markdown parsing fails, escape special characters and try again
+            escaped_text = self._escape_markdown(text)
+            try:
+                await update.message.reply_text(escaped_text, parse_mode=ParseMode.MARKDOWN)
+            except Exception:
+                # If still fails, send as plain text
+                await update.message.reply_text(text, parse_mode=None)
+    
     async def ask_gpt(self, update: Update, context: ContextTypes.DEFAULT_TYPE, question: str):
         """Ask GPT Assistant a question"""
         try:
@@ -681,10 +786,26 @@ class FinGPTTelegramBot:
             
             full_response = confidence_text + response
             
-            await update.message.reply_text(full_response, parse_mode=ParseMode.MARKDOWN)
+            # Use safe reply with Markdown fallback
+            await self._safe_reply_text(update, full_response)
             
         except Exception as e:
             await update.message.reply_text(f"❌ Lỗi khi xử lý câu hỏi: {str(e)}")
+    
+    async def ask_claude(self, update: Update, context: ContextTypes.DEFAULT_TYPE, question: str):
+        """Ask Claude AI Assistant a question"""
+        try:
+            await update.message.reply_text(f"🤖 Claude AI đang phân tích: {question}")
+            
+            # Get answer from Claude Assistant
+            analysis = self.claude_assistant.analyze_question(question)
+            response = self.claude_assistant.format_response(analysis)
+            
+            # Use safe reply with Markdown fallback
+            await self._safe_reply_text(update, response)
+            
+        except Exception as e:
+            await update.message.reply_text(f"❌ Lỗi khi xử lý câu hỏi với Claude: {str(e)}")
     
     async def explain_indicator(self, update: Update, context: ContextTypes.DEFAULT_TYPE, indicator: str):
         """Explain a technical indicator"""
@@ -816,7 +937,6 @@ Xin chào {user.first_name}! Tôi là bot AI chuyên gia tư vấn đầu tư th
             [InlineKeyboardButton("🤖 GPT Assistant", callback_data="gpt_assistant")],
             [InlineKeyboardButton("📊 Tối ưu Portfolio", callback_data="optimize_portfolio")],
             [InlineKeyboardButton("⚠️ Phân tích rủi ro", callback_data="risk_analysis")],
-            [InlineKeyboardButton("🇻🇳 Thị trường VN", callback_data="vn_market")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
@@ -840,6 +960,11 @@ Xin chào {user.first_name}! Tôi là bot AI chuyên gia tư vấn đầu tư th
         await query.answer()
         
         if query.data == "analyze_stock":
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
             await query.edit_message_text(
                 "🧠 **AI Investment Advisor**\n\n"
                 "**Lệnh AI toàn diện:**\n"
@@ -854,24 +979,47 @@ Xin chào {user.first_name}! Tôi là bot AI chuyên gia tư vấn đầu tư th
                 "• Độ tin cậy: 0-100%\n"
                 "• Chiến lược đầu tư chi tiết\n"
                 "• Target price & Stop loss",
-                parse_mode=ParseMode.MARKDOWN
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=reply_markup
             )
         elif query.data == "optimize_portfolio":
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
             await query.edit_message_text(
                 "📊 **Tối ưu hóa Portfolio**\n\n"
-                "Sử dụng lệnh:\n"
-                "• `/portfolio VNM,TCB,HPG` - Portfolio VN\n"
-                "• `/portfolio AAPL,MSFT,GOOGL` - Portfolio Mỹ",
-                parse_mode=ParseMode.MARKDOWN
+                "**Sử dụng lệnh:**\n"
+                "• `/portfolio VNM,TCB,HPG` - Portfolio VN (3 cổ phiếu)\n"
+                "• `/portfolio VNM,TCB,HPG,FPT,VIC` - Portfolio VN (5 cổ phiếu)\n"
+                "• `/portfolio AAPL,MSFT,GOOGL` - Portfolio Mỹ\n\n"
+                "**Lưu ý:**\n"
+                "• Cần ít nhất 2 cổ phiếu để tối ưu hóa\n"
+                "• 1 cổ phiếu sẽ hiển thị phân tích đơn lẻ\n"
+                "• Tối đa 10 cổ phiếu để đảm bảo hiệu suất",
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=reply_markup
             )
         elif query.data == "risk_analysis":
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
             await query.edit_message_text(
                 "⚠️ **Phân tích rủi ro**\n\n"
                 "Sử dụng lệnh:\n"
                 "• `/risk VNM` - Phân tích rủi ro cổ phiếu",
-                parse_mode=ParseMode.MARKDOWN
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=reply_markup
             )
         elif query.data == "gpt_assistant":
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
             await query.edit_message_text(
                 "🤖 **GPT Assistant - Hỏi đáp thông minh**\n\n"
                 "**Lệnh GPT Assistant:**\n"
@@ -891,9 +1039,60 @@ Xin chào {user.first_name}! Tôi là bot AI chuyên gia tư vấn đầu tư th
                 "• Giải thích chi tiết các chỉ báo kỹ thuật\n"
                 "• Đưa ra lời khuyên đầu tư thông minh\n"
                 "• Sử dụng AI Ollama để xử lý",
-                parse_mode=ParseMode.MARKDOWN
+                reply_markup=reply_markup
+            )
+        elif query.data == "claude_assistant":
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            if not self.claude_assistant:
+                await query.edit_message_text(
+                    "❌ **Claude AI Assistant chưa sẵn sàng**\n\n"
+                    "**Lý do:**\n"
+                    "• ANTHROPIC_API_KEY chưa được cấu hình\n"
+                    "• Hoặc API key không hợp lệ\n\n"
+                    "**Cách khắc phục:**\n"
+                    "1. Đăng ký tài khoản tại https://console.anthropic.com\n"
+                    "2. Tạo API key\n"
+                    "3. Thêm vào file config.env:\n"
+                    "   `ANTHROPIC_API_KEY=your_api_key_here`\n"
+                    "4. Khởi động lại bot",
+                    parse_mode=ParseMode.MARKDOWN,
+                    reply_markup=reply_markup
+                )
+            else:
+                await query.edit_message_text(
+                    "🤖 **Claude AI Assistant - AI thông minh**\n\n"
+                    "**Lệnh Claude AI:**\n"
+                    "• `/claude <câu hỏi>` - **Hỏi đáp Claude AI** về tài chính\n"
+                    "• `/explain <chỉ báo>` - **Giải thích chỉ báo** kỹ thuật\n"
+                    "• `/tips <chủ đề>` - **Lời khuyên đầu tư**\n\n"
+                    "**Ví dụ sử dụng:**\n"
+                    "• `/claude RSI là gì?` - Hỏi về chỉ báo RSI\n"
+                    "• `/claude Làm thế nào để quản lý rủi ro?` - Hỏi về quản lý rủi ro\n"
+                    "• `/claude Phân tích xu hướng thị trường VN?` - Phân tích thị trường\n"
+                    "• `/explain MACD` - Giải thích chỉ báo MACD\n"
+                    "• `/explain Bollinger` - Giải thích Bollinger Bands\n"
+                    "• `/tips general` - Lời khuyên chung\n"
+                    "• `/tips technical` - Lời khuyên kỹ thuật\n"
+                    "• `/tips risk` - Lời khuyên quản lý rủi ro\n\n"
+                    "**Tính năng:**\n"
+                    "• Trả lời mọi câu hỏi về tài chính\n"
+                    "• Giải thích chi tiết các chỉ báo kỹ thuật\n"
+                    "• Đưa ra lời khuyên đầu tư thông minh\n"
+                    "• Sử dụng Claude 3.5 Sonnet API\n"
+                    "• Độ tin cậy cao, trả lời chi tiết",
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=reply_markup
             )
         elif query.data == "vn_market":
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
             await query.edit_message_text(
                 "🇻🇳 **Thị trường Việt Nam**\n\n"
                 "Cổ phiếu phổ biến:\n"
@@ -906,15 +1105,46 @@ Xin chào {user.first_name}! Tôi là bot AI chuyên gia tư vấn đầu tư th
                 "• VRE (Vincom Retail)\n"
                 "• MWG (Mobile World)\n\n"
                 "Lệnh: `/vn VNM` hoặc `/stock VNM`",
-                parse_mode=ParseMode.MARKDOWN
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=reply_markup
             )
         elif query.data == "us_market":
+            keyboard = [
+                [InlineKeyboardButton("⬅️ Back", callback_data="back_to_main")]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
             await query.edit_message_text(
                 "🇺🇸 **Thị trường Mỹ**\n\n"
                 "⚠️ **Tạm thời không khả dụng**\n\n"
                 "Thị trường Mỹ đang được bảo trì.\n"
                 "Vui lòng sử dụng thị trường Việt Nam.",
-                parse_mode=ParseMode.MARKDOWN
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=reply_markup
+            )
+        elif query.data == "back_to_main":
+            # Return to main menu
+            user = update.effective_user
+            welcome_message = f"""
+🤖 **AlphaPulse Bot here!**
+
+👋 Hello {user.first_name}! I'm your intelligent AI-powered investment assistant, ready to help you invest smarter, manage risk ⚖️, and grow your portfolio 📈💰.
+
+            """
+            
+            keyboard = [
+                [InlineKeyboardButton("🧠 AI Investment Advisor", callback_data="analyze_stock")],
+                [InlineKeyboardButton("🤖 GPT Assistant", callback_data="gpt_assistant")],
+                [InlineKeyboardButton("🤖 Claude AI", callback_data="claude_assistant")],
+                [InlineKeyboardButton("📊 Tối ưu Portfolio", callback_data="optimize_portfolio")],
+                [InlineKeyboardButton("⚠️ Phân tích rủi ro", callback_data="risk_analysis")],
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await query.edit_message_text(
+                welcome_message,
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=reply_markup
             )
     
     def run(self):
@@ -931,6 +1161,7 @@ Xin chào {user.first_name}! Tôi là bot AI chuyên gia tư vấn đầu tư th
         application.add_handler(CommandHandler("portfolio", self.portfolio_command))
         application.add_handler(CommandHandler("risk", self.risk_command))
         application.add_handler(CommandHandler("ask", self.ask_command))
+        application.add_handler(CommandHandler("claude", self.claude_command))
         application.add_handler(CommandHandler("explain", self.explain_command))
         application.add_handler(CommandHandler("tips", self.tips_command))
         application.add_handler(CallbackQueryHandler(self.button_callback))

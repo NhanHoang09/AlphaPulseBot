@@ -17,6 +17,9 @@
 - **Time Series Forecasting**: Prophet, ARIMA, SARIMA
 - **Sentiment Analysis**: News sentiment từ các nguồn tin tài chính
 - **Risk Assessment**: VaR, Sharpe ratio, Maximum drawdown
+- **AI Assistants**:
+  - **GPT Assistant** (Ollama): Hỏi đáp tài chính miễn phí
+  - **Claude AI** (Anthropic): Hỏi đáp thông minh với Claude 3.5 Sonnet, độ chính xác cao
 
 ### 📱 Telegram Bot Integration
 
@@ -65,12 +68,22 @@ python -m venv venv
 source venv/bin/activate
 # Trên Windows:
 venv\Scripts\activate
+
+# Hoặc sử dụng script tự động:
+./setup_venv.sh
 ```
 
 ### Bước 3: Cài đặt dependencies
 
 ```bash
+# Đảm bảo virtual environment đã được kích hoạt
+source venv/bin/activate
+
+# Cài đặt dependencies
 pip install -r requirements.txt
+
+# Hoặc sử dụng script tự động (đã bao gồm cài đặt dependencies):
+./setup_venv.sh
 ```
 
 ### Bước 4: Cấu hình môi trường
@@ -97,6 +110,9 @@ nano .env
   - Đăng ký tại: https://newsapi.org/
 - **Telegram Bot Token**: Để sử dụng bot Telegram
   - Tạo bot tại: @BotFather trên Telegram
+- **Anthropic API**: Để sử dụng Claude AI Assistant
+  - Đăng ký tại: https://console.anthropic.com/
+  - Có phí theo token usage
 
 ### Ví dụ file .env
 
@@ -210,6 +226,9 @@ python debug_ollama.py
 
 # Test GPT Assistant
 python test_gpt_assistant_ollama.py
+
+# Test Claude Assistant
+python demo_claude_assistant.py
 ```
 
 ## 📊 Ví dụ sử dụng
@@ -240,6 +259,37 @@ from src.risk.risk_manager import RiskManager
 risk_manager = RiskManager()
 portfolio = ["VNM", "TCB", "HPG", "FPT"]
 optimized = risk_manager.optimize_portfolio(portfolio)
+```
+
+### Sử dụng Claude AI Assistant
+
+```python
+from src.ai.claude_assistant import ClaudeAssistant
+
+# Khởi tạo Claude Assistant
+claude = ClaudeAssistant()
+
+# Hỏi đáp tài chính
+question = "RSI là gì và cách sử dụng?"
+analysis = claude.analyze_question(question)
+response = claude.format_response(analysis)
+print(response)
+```
+
+### Telegram Bot Commands
+
+```bash
+# Claude AI Assistant
+/claude RSI là gì?
+/claude Làm thế nào để quản lý rủi ro?
+
+# GPT Assistant
+/ask MACD là gì?
+/ask Chiến lược đầu tư dài hạn?
+
+# Phân tích kỹ thuật
+/explain Bollinger
+/tips technical
 ```
 
 ## 🛡️ Disclaimer
