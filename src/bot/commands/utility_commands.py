@@ -45,90 +45,94 @@ class UtilityCommands(BaseCommands):
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle /help command"""
         help_text = """
-🤖 **FinGPT Bot - Hướng dẫn sử dụng**
+🤖 **AlphaPulse Bot - Command List**
 
-🇻🇳 **Chuyên phân tích thị trường Việt Nam**
+📋 **Danh sách tất cả commands theo module:**
 
-🧠 **AI Investment Advisor Commands:**
-• `/stock <symbol>` - **Phân tích AI toàn diện** (Khuyến nghị + Chiến lược)
-  Ví dụ: `/stock VNM`, `/stock TCB`
+---
 
-🔮 **AI Prediction Commands:**
+## 🧠 **AI Investment Advisor Module**
+**Phân tích AI toàn diện với khuyến nghị và chiến lược đầu tư**
+
+• `/stock <symbol>` - **Phân tích AI toàn diện**
+  - Khuyến nghị: BUY/SELL/HOLD/STRONG_BUY/STRONG_SELL
+  - Độ tin cậy: 0-100%
+  - Chiến lược đầu tư chi tiết
+  - Target price & Stop loss
+  - Ví dụ: `/stock VNM`, `/stock TCB`, `/stock AAPL`
+
+---
+
+## 🔮 **AI Prediction Module**
+**Dự báo giá cổ phiếu với AI models**
+
 • `/predict <symbol> [model]` - **Dự báo giá với AI**
-  Ví dụ: `/predict VNM`, `/predict VNM lstm`, `/predict AAPL ensemble`
+  - Models: `lstm` (mặc định), `ensemble`
+  - Ví dụ: `/predict VNM`, `/predict VNM lstm`, `/predict AAPL ensemble`
 
-🤖 **AI Model Training:**
 • `/train <symbol> [model]` - **Training AI model**
-  Ví dụ: `/train VNM lstm`, `/train AAPL ensemble`
+  - Training LSTM hoặc Ensemble model
+  - Ví dụ: `/train VNM lstm`, `/train VNM ensemble`
 
-📊 **Model Management:**
 • `/model_status <symbol> [model]` - **Kiểm tra trạng thái model**
-  Ví dụ: `/model_status VNM`, `/model_status VNM lstm`
+  - Kiểm tra model đã train hay chưa
+  - Ví dụ: `/model_status VNM`, `/model_status VNM lstm`
 
-📊 **Technical Analysis Commands:**
-• `/stock <symbol>` - Phân tích AI toàn diện
+---
 
-📈 **Portfolio & Risk Commands:**
-• `/portfolio <symbols>` - Tối ưu hóa portfolio
-• `/risk <symbol>` - Phân tích rủi ro chi tiết
+## 📊 **Technical Analysis Module**
+**Giải thích và hướng dẫn chỉ báo kỹ thuật**
 
-🤖 **AI Assistant Commands:**
-• `/ask <question>` - **Hỏi đáp GPT** về tài chính
-• `/claude <question>` - **Hỏi đáp Claude AI** về tài chính
-• `/explain <indicator>` - **Giải thích chỉ báo** kỹ thuật
+• `/explain <indicator>` - **Giải thích chỉ báo kỹ thuật**
+  - RSI, MACD, Bollinger Bands, Stochastic, Williams %R, ATR
+  - Ví dụ: `/explain RSI`, `/explain MACD`, `/explain Bollinger`
+
+---
+
+## 📈 **Portfolio Management Module**
+**Quản lý danh mục đầu tư và phân tích rủi ro**
+
+• `/portfolio <symbols>` - **Tối ưu hóa portfolio**
+  - Tối ưu trọng số portfolio theo Sharpe ratio
+  - Ví dụ: `/portfolio VNM,TCB,HPG`, `/portfolio VNM,TCB,HPG,FPT,VIC`
+
+• `/risk <symbol>` - **Phân tích rủi ro chi tiết**
+  - Sharpe ratio, VaR, Max drawdown, Volatility
+  - Ví dụ: `/risk VNM`, `/risk TCB`
+
+---
+
+## 🤖 **AI Assistant Module**
+**Hỏi đáp và lời khuyên với AI**
+
+• `/ask <question>` - **GPT Assistant (Ollama - Miễn phí)**
+  - Hỏi đáp về tài chính và đầu tư
+  - Ví dụ: `/ask RSI là gì?`, `/ask Làm thế nào để quản lý rủi ro?`
+
+• `/claude <question>` - **Claude AI (Anthropic - Có phí)**
+  - Phân tích chuyên sâu với độ chính xác cao
+  - Ví dụ: `/claude Phân tích xu hướng thị trường VN?`
+
 • `/tips <topic>` - **Lời khuyên đầu tư**
+  - Topics: `general`, `technical`, `risk`
+  - Ví dụ: `/tips general`, `/tips technical`, `/tips risk`
 
 ---
 
-🎯 **AI Advisor Features:**
-• **Khuyến nghị:** BUY/SELL/HOLD/STRONG_BUY/STRONG_SELL
-• **Độ tin cậy:** 0-100% dựa trên phân tích toàn diện
-• **Khung thời gian:** 1-3 tháng / 3-6 tháng / 6-12 tháng
-• **Mức rủi ro:** LOW/MEDIUM/HIGH theo tiêu chuẩn VN
-• **Tâm lý thị trường:** BULLISH/BEARISH/NEUTRAL
-• **Phân tích ngành:** Blue-chip, Mid-cap, Ngân hàng, Tiêu dùng
+## 🔧 **Utility Module**
+**Các lệnh tiện ích của bot**
 
-📋 **Chiến lược đầu tư:**
-• Kích thước vị thế
-• Chiến lược vào lệnh
-• Chiến lược thoát lệnh
-• Quản lý rủi ro
-• Giá mục tiêu & Stop Loss
+• `/start` - **Khởi động bot**
+  - Hiển thị menu chính với các tính năng
+
+• `/help` - **Hướng dẫn sử dụng**
+  - Hiển thị danh sách commands này
 
 ---
 
-🔍 **Ví dụ sử dụng AI:**
-• `/stock VNM` - AI phân tích VNM (VN)
-• `/stock TCB` - AI phân tích TCB (VN)
-• `/stock HPG` - AI phân tích HPG (VN)
-• `/stock FPT` - AI phân tích FPT (VN)
+## 📊 **Cổ phiếu phổ biến**
 
-📊 **Ví dụ phân tích thường:**
-• `/stock VNM` - Phân tích AI toàn diện VNM
-• `/portfolio VNM,TCB,HPG` - Tối ưu portfolio
-• `/risk TCB` - Phân tích rủi ro TCB
-
-🤖 **Ví dụ AI Assistants:**
-
-**GPT Assistant (Ollama - Miễn phí):**
-• `/ask RSI là gì?` - Hỏi về RSI
-• `/ask Làm thế nào để quản lý rủi ro?` - Hỏi về quản lý rủi ro
-• `/ask Chiến lược đầu tư dài hạn?` - Hỏi về chiến lược
-
-**Claude AI (Anthropic - Có phí):**
-• `/claude RSI là gì?` - Hỏi Claude về RSI
-• `/claude Làm thế nào để quản lý rủi ro?` - Hỏi Claude về quản lý rủi ro
-• `/claude Phân tích xu hướng thị trường VN?` - Phân tích thị trường
-• `/claude So sánh cổ phiếu VNM và TCB?` - So sánh cổ phiếu
-
-**Chung cho cả hai:**
-• `/explain MACD` - Giải thích chỉ báo MACD
-• `/explain Bollinger` - Giải thích Bollinger Bands
-• `/tips general` - Lời khuyên chung
-• `/tips technical` - Lời khuyên kỹ thuật
-• `/tips risk` - Lời khuyên quản lý rủi ro
-
-📊 **Cổ phiếu VN phổ biến:**
+**🇻🇳 Thị trường Việt Nam:**
 • **Blue-chip:** VNM, TCB, HPG, FPT, VIC, VHM
 • **Mid-cap:** VRE, MWG, VPB, ACB, BID, VCB
 • **Ngành ngân hàng:** TCB, VPB, ACB, BID, VCB
@@ -136,42 +140,35 @@ class UtilityCommands(BaseCommands):
 • **Ngành công nghệ:** FPT
 • **Ngành bất động sản:** VIC, VHM
 
-💡 **Lệnh khác:**
-• `/start` - Khởi động bot
-• `/help` - Hiển thị hướng dẫn này
-
-💡 **Cách sử dụng hiệu quả:**
-1. **Bắt đầu với AI Advisor:** `/stock VNM` để có phân tích toàn diện
-2. **Tìm hiểu kỹ thuật:** `/explain RSI` để hiểu chỉ báo
-3. **Hỏi đáp:** `/ask Làm thế nào để quản lý rủi ro?`
-4. **Lời khuyên:** `/tips risk` để có gợi ý đầu tư
-5. **Tối ưu portfolio:** `/portfolio VNM,TCB,HPG`
+**🇺🇸 Thị trường Mỹ:**
+• **Tech:** AAPL, MSFT, GOOGL, AMZN, TSLA
+• **Finance:** JPM, BAC, WFC, GS
+• **Healthcare:** JNJ, PFE, UNH
 
 ---
-🤖 **AI Advisor sử dụng:**
-• Phân tích kỹ thuật (35%) - RSI, MACD, Bollinger Bands
-• Chỉ số rủi ro (25%) - Sharpe, VaR, Max Drawdown
-• Hành động giá (20%) - Support/Resistance, Volume
-• Tâm lý thị trường (15%) - Blue-chip, Sector analysis
-• Phân tích khối lượng (5%) - Volume trends
 
-🤖 **AI Assistants có thể:**
+## 💡 **Cách sử dụng hiệu quả**
 
-**GPT Assistant (Ollama):**
-• Giải thích các chỉ báo kỹ thuật chi tiết
-• Trả lời câu hỏi về tài chính và đầu tư
-• Đưa ra lời khuyên đầu tư theo chủ đề
-• Phân tích từ khóa thông minh
-• Hỗ trợ học tập và nghiên cứu
-• **Ưu điểm:** Miễn phí, chạy offline, tốc độ nhanh
+1. **Bắt đầu với AI Advisor:** `/stock VNM` để có phân tích toàn diện
+2. **Tìm hiểu kỹ thuật:** `/explain RSI` để hiểu chỉ báo
+3. **Dự báo giá:** `/predict VNM` để dự báo xu hướng
+4. **Hỏi đáp:** `/ask Làm thế nào để quản lý rủi ro?`
+5. **Lời khuyên:** `/tips risk` để có gợi ý đầu tư
+6. **Tối ưu portfolio:** `/portfolio VNM,TCB,HPG`
 
-**Claude AI (Anthropic):**
-• Phân tích tài chính chuyên sâu với độ chính xác cao
-• Trả lời câu hỏi phức tạp về thị trường Việt Nam
-• So sánh và đánh giá cổ phiếu chi tiết
-• Phân tích xu hướng thị trường toàn diện
-• Đưa ra khuyến nghị đầu tư thông minh
-• **Ưu điểm:** Độ chính xác cao, kiến thức cập nhật, trả lời chi tiết
+---
+
+## 🎯 **Tổng cộng: 12 Commands**
+
+**🧠 AI Investment Advisor:** 1 command
+**🔮 AI Prediction:** 3 commands  
+**📊 Technical Analysis:** 1 command
+**📈 Portfolio Management:** 2 commands
+**🤖 AI Assistant:** 3 commands
+**🔧 Utility:** 2 commands
+
+---
+💡 **Lưu ý:** Sử dụng `/start` để xem menu chính với các tính năng
         """
         
         await update.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)

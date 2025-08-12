@@ -70,18 +70,22 @@ class ButtonHandlers(BaseCommands):
             await query.edit_message_text(
                 "📊 **Technical Analysis - Phân tích kỹ thuật**\n\n"
                 "**Lệnh phân tích:**\n"
-                "• `/stock <symbol>` - Phân tích AI toàn diện\n"
-                "• `/explain <indicator>` - Giải thích chỉ báo\n\n"
+                "• `/explain <indicator>` - Giải thích chỉ báo kỹ thuật\n\n"
                 "**Chỉ báo kỹ thuật:**\n"
                 "• RSI - Relative Strength Index\n"
                 "• MACD - Moving Average Convergence Divergence\n"
                 "• Bollinger Bands - Dải Bollinger\n"
                 "• Moving Averages - Đường trung bình\n"
-                "• Volume - Khối lượng giao dịch\n\n"
+                "• Volume - Khối lượng giao dịch\n"
+                "• Stochastic - Stochastic Oscillator\n"
+                "• Williams %R - Williams Percent Range\n"
+                "• ATR - Average True Range\n\n"
                 "**Ví dụ sử dụng:**\n"
-                "• `/stock VNM` - Phân tích toàn diện VNM\n"
                 "• `/explain RSI` - Giải thích RSI\n"
-                "• `/explain MACD` - Giải thích MACD",
+                "• `/explain MACD` - Giải thích MACD\n"
+                "• `/explain Bollinger` - Giải thích Bollinger Bands\n"
+                "• `/explain Stochastic` - Giải thích Stochastic\n\n"
+                "💡 **Lưu ý:** Phân tích AI toàn diện sử dụng lệnh `/stock <symbol>` trong AI Investment Advisor",
                 parse_mode=ParseMode.MARKDOWN,
                 reply_markup=reply_markup
             )
