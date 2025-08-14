@@ -28,7 +28,12 @@ echo "📥 Installing dependencies..."
 pip install anthropic>=0.7.0
 pip install python-dotenv python-telegram-bot
 pip install yfinance alpha-vantage ta scikit-learn
-pip install tensorflow pandas-ta
+
+# Fix protobuf version mismatch before installing tensorflow
+echo "🔧 Fixing protobuf version compatibility..."
+pip uninstall -y protobuf google-protobuf
+pip install protobuf==4.25.3
+pip install tensorflow>=2.15.0 pandas-ta
 
 # Kiểm tra cài đặt
 echo "🔍 Checking installations..."

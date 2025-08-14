@@ -3,10 +3,14 @@ AI Prediction Commands
 Commands cho dự báo giá với AI
 """
 
+import logging
 from telegram import Update
 from telegram.ext import ContextTypes
 from telegram.constants import ParseMode
 from .base_commands import BaseCommands
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 
 class PredictionCommands(BaseCommands):
     """AI Prediction Commands"""
@@ -15,13 +19,13 @@ class PredictionCommands(BaseCommands):
         """Handle /predict command - AI prediction"""
         if not context.args:
             await update.message.reply_text(
-                "🔮 **AI Prediction**\n\n"
-                "Sử dụng: `/predict <symbol> [model_type]`\n"
+                "🔮 <b>AI Prediction</b>\n\n"
+                "Sử dụng: <code>/predict &lt;symbol&gt; [model_type]</code>\n"
                 "Ví dụ:\n"
-                "• `/predict VNM` - Dự báo với LSTM\n"
-                "• `/predict VNM ensemble` - Dự báo với Ensemble\n"
-                "• `/predict AAPL lstm` - Dự báo cổ phiếu Mỹ",
-                parse_mode=ParseMode.MARKDOWN
+                "• <code>/predict VNM</code> - Dự báo với LSTM\n"
+                "• <code>/predict VNM ensemble</code> - Dự báo với Ensemble\n"
+                "• <code>/predict AAPL lstm</code> - Dự báo cổ phiếu Mỹ",
+                parse_mode=ParseMode.HTML
             )
             return
         
@@ -39,13 +43,13 @@ class PredictionCommands(BaseCommands):
         """Handle /train command - Train AI models"""
         if not context.args:
             await update.message.reply_text(
-                "🤖 **AI Model Training**\n\n"
-                "Sử dụng: `/train <symbol> [model_type]`\n"
+                "🤖 <b>AI Model Training</b>\n\n"
+                "Sử dụng: <code>/train &lt;symbol&gt; [model_type]</code>\n"
                 "Ví dụ:\n"
-                "• `/train VNM` - Train LSTM cho VNM\n"
-                "• `/train VNM ensemble` - Train Ensemble cho VNM\n"
-                "• `/train AAPL lstm` - Train LSTM cho AAPL",
-                parse_mode=ParseMode.MARKDOWN
+                "• <code>/train VNM</code> - Train LSTM cho VNM\n"
+                "• <code>/train VNM ensemble</code> - Train Ensemble cho VNM\n"
+                "• <code>/train AAPL lstm</code> - Train LSTM cho AAPL",
+                parse_mode=ParseMode.HTML
             )
             return
         
@@ -63,12 +67,12 @@ class PredictionCommands(BaseCommands):
         """Handle /model_status command - Check model status"""
         if not context.args:
             await update.message.reply_text(
-                "📊 **Model Status**\n\n"
-                "Sử dụng: `/model_status <symbol> [model_type]`\n"
+                "📊 <b>Model Status</b>\n\n"
+                "Sử dụng: <code>/model_status &lt;symbol&gt; [model_type]</code>\n"
                 "Ví dụ:\n"
-                "• `/model_status VNM` - Kiểm tra tất cả models\n"
-                "• `/model_status VNM lstm` - Kiểm tra LSTM model",
-                parse_mode=ParseMode.MARKDOWN
+                "• <code>/model_status VNM</code> - Kiểm tra tất cả models\n"
+                "• <code>/model_status VNM lstm</code> - Kiểm tra LSTM model",
+                parse_mode=ParseMode.HTML
             )
             return
         
@@ -104,20 +108,20 @@ class PredictionCommands(BaseCommands):
             change_percent = ((predicted_price - current_price) / current_price) * 100
             
             message = f"""
-🔮 **AI Prediction - {symbol}**
+🔮 <b>AI Prediction - {symbol}</b>
 
-💰 **Giá hiện tại:** {current_price:,.2f}
-🎯 **Giá dự báo:** {predicted_price:,.2f}
-📈 **Thay đổi:** {change_percent:+.2f}%
+💰 <b>Giá hiện tại:</b> {current_price:,.2f}
+🎯 <b>Giá dự báo:</b> {predicted_price:,.2f}
+📈 <b>Thay đổi:</b> {change_percent:+.2f}%
 
-🤖 **Model:** {prediction['model_type'].upper()}
-📊 **Độ tin cậy:** {prediction['confidence']:.1%}
-📅 **Ngày dự báo:** {prediction['prediction_date'].strftime('%Y-%m-%d %H:%M')}
+🤖 <b>Model:</b> {prediction['model_type'].upper()}
+📊 <b>Độ tin cậy:</b> {prediction['confidence']:.1%}
+📅 <b>Ngày dự báo:</b> {prediction['prediction_date'].strftime('%Y-%m-%d %H:%M')}
 
-💡 **Khuyến nghị:** {'🟢 MUA' if change_percent > 2 else '🔴 BÁN' if change_percent < -2 else '🟡 GIỮ'}
+💡 <b>Khuyến nghị:</b> {'🟢 MUA' if change_percent > 2 else '🔴 BÁN' if change_percent < -2 else '🟡 GIỮ'}
 """
             
-            await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
+            await update.message.reply_text(message, parse_mode=ParseMode.HTML)
             
         except Exception as e:
             await update.message.reply_text(f"❌ Lỗi khi dự báo {symbol}: {str(e)}")
@@ -125,11 +129,19 @@ class PredictionCommands(BaseCommands):
     async def train_model(self, update: Update, context: ContextTypes.DEFAULT_TYPE, symbol: str, model_type: str = 'lstm'):
         """Train AI model for a symbol"""
         try:
+            logging.info(f"Starting training for {symbol} with {model_type} model")
+            
             # Get data based on market
             if symbol.endswith('.VN') or len(symbol) <= 3:  # VN market
+                logging.info(f"Using VN collector for {symbol}")
                 data = self.vn_collector.get_vn_stock_data_yahoo(symbol, period="2y")
+                logging.info(f"VN collector result: {data.shape if not data.empty else 'Empty'}")
             else:  # US market
+                logging.info(f"Using US collector for {symbol}")
                 data = self.us_collector.get_stock_data(symbol, period="2y")
+                logging.info(f"US collector result: {data.shape if not data.empty else 'Empty'}")
+            
+            logging.info(f"Data collected for {symbol}: {data.shape}")
             
             if data.empty:
                 await update.message.reply_text(f"❌ Không thể lấy dữ liệu cho {symbol}")
@@ -137,12 +149,18 @@ class PredictionCommands(BaseCommands):
             
             # Add technical indicators
             data_with_indicators = self.analyzer.add_all_indicators(data)
+            logging.info(f"Technical indicators added: {data_with_indicators.shape}")
             
             # Train model
             if model_type == 'lstm':
-                result = self.predictor.train_lstm_model(data_with_indicators, symbol, epochs=50)  # Reduced for Telegram
+                logging.info(f"Training LSTM model for {symbol}")
+                result = self.predictor.train_lstm_model(data_with_indicators, symbol, 
+                                                       lookback=30, epochs=100, batch_size=16)  # Cải thiện cho R²
             else:  # ensemble
+                logging.info(f"Training Ensemble model for {symbol}")
                 result = self.predictor.train_ensemble_model(data_with_indicators, symbol)
+            
+            logging.info(f"Training result: {result}")
             
             if 'error' in result:
                 await update.message.reply_text(f"❌ Lỗi training: {result['error']}")
@@ -150,34 +168,44 @@ class PredictionCommands(BaseCommands):
             
             # Format training result message
             if model_type == 'lstm':
+                # Escape special characters in file path
+                model_path = result.get('model_path', 'N/A')
+                if model_path != 'N/A':
+                    model_path = model_path.replace('_', '\\_').replace('-', '\\-').replace('.', '\\.')
+                
                 message = f"""
-🤖 **LSTM Model Training Complete - {symbol}**
+🤖 <b>LSTM Model Training Complete - {symbol}</b>
 
-✅ **Status:** Training thành công
-📊 **Model Type:** LSTM
-📈 **Performance:**
+✅ <b>Status:</b> Training thành công
+📊 <b>Model Type:</b> LSTM
+📈 <b>Performance:</b>
 • MSE: {result.get('mse', 'N/A'):.4f}
 • MAE: {result.get('mae', 'N/A'):.4f}
 • R²: {result.get('r2', 'N/A'):.4f}
 
-💾 **Model saved:** {result.get('model_path', 'N/A')}
+💾 <b>Model saved:</b> <code>{model_path}</code>
 """
             else:
+                # Escape special characters in file path
+                model_path = result.get('model_path', 'N/A')
+                if model_path != 'N/A':
+                    model_path = model_path.replace('_', '\\_').replace('-', '\\-').replace('.', '\\.')
+                
                 message = f"""
-🤖 **Ensemble Model Training Complete - {symbol}**
+🤖 <b>Ensemble Model Training Complete - {symbol}</b>
 
-✅ **Status:** Training thành công
-📊 **Model Type:** Ensemble
-🏆 **Best Model:** {result.get('best_model', 'N/A')}
+✅ <b>Status:</b> Training thành công
+📊 <b>Model Type:</b> Ensemble
+🏆 <b>Best Model:</b> {result.get('best_model', 'N/A')}
 
-📈 **Performance:**
+📈 <b>Performance:</b>
 """
                 for model_name, metrics in result.get('results', {}).items():
                     message += f"• {model_name}: MSE={metrics.get('mse', 'N/A'):.4f}\n"
                 
-                message += f"\n💾 **Model saved:** {result.get('model_path', 'N/A')}"
+                message += f"\n💾 <b>Model saved:</b> <code>{model_path}</code>"
             
-            await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
+            await update.message.reply_text(message, parse_mode=ParseMode.HTML)
             
         except Exception as e:
             await update.message.reply_text(f"❌ Lỗi khi training model cho {symbol}: {str(e)}")
@@ -191,36 +219,36 @@ class PredictionCommands(BaseCommands):
                 ensemble_status = self.predictor.get_model_performance(symbol, 'ensemble')
                 
                 message = f"""
-📊 **Model Status - {symbol}**
+📊 <b>Model Status - {symbol}</b>
 
-🤖 **LSTM Model:**
+🤖 <b>LSTM Model:</b>
 • Status: {lstm_status.get('status', 'Unknown')}
-• File: {lstm_status.get('file_path', 'Not found')}
+• File: <code>{lstm_status.get('file_path', 'Not found')}</code>
 
-🏆 **Ensemble Model:**
+🏆 <b>Ensemble Model:</b>
 • Status: {ensemble_status.get('status', 'Unknown')}
-• File: {ensemble_status.get('file_path', 'Not found')}
+• File: <code>{ensemble_status.get('file_path', 'Not found')}</code>
 
-💡 **Commands:**
-• `/train {symbol} lstm` - Train LSTM
-• `/train {symbol} ensemble` - Train Ensemble
-• `/predict {symbol} lstm` - Predict with LSTM
-• `/predict {symbol} ensemble` - Predict with Ensemble
+💡 <b>Commands:</b>
+• <code>/train {symbol} lstm</code> - Train LSTM
+• <code>/train {symbol} ensemble</code> - Train Ensemble
+• <code>/predict {symbol} lstm</code> - Predict with LSTM
+• <code>/predict {symbol} ensemble</code> - Predict with Ensemble
 """
             else:
                 # Check specific model
                 status = self.predictor.get_model_performance(symbol, model_type)
                 
                 message = f"""
-📊 **Model Status - {symbol} ({model_type.upper()})**
+📊 <b>Model Status - {symbol} ({model_type.upper()})</b>
 
-• **Status:** {status.get('status', 'Unknown')}
-• **File:** {status.get('file_path', 'Not found')}
-• **Loaded at:** {status.get('loaded_at', 'N/A')}
+• <b>Status:</b> {status.get('status', 'Unknown')}
+• <b>File:</b> <code>{status.get('file_path', 'Not found')}</code>
+• <b>Loaded at:</b> {status.get('loaded_at', 'N/A')}
 
-💡 **Commands:**
-• `/train {symbol} {model_type}` - Train model
-• `/predict {symbol} {model_type}` - Predict
+💡 <b>Commands:</b>
+• <code>/train {symbol} {model_type}</code> - Train model
+• <code>/predict {symbol} {model_type}</code> - Predict
 """
             
             await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)

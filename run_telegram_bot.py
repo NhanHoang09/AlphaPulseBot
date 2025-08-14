@@ -6,7 +6,13 @@ Script để chạy Telegram Bot với cấu trúc modular
 
 import os
 import sys
+import warnings
 from dotenv import load_dotenv
+
+# Suppress protobuf warnings
+warnings.filterwarnings("ignore", message=".*Protobuf gencode version.*")
+warnings.filterwarnings("ignore", message=".*runtime version.*")
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # Load environment variables
 load_dotenv()

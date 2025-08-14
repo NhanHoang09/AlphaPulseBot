@@ -37,9 +37,12 @@ class VNAlternativeCollector:
                 yahoo_symbol = symbol
             
             self.logger.info(f"Đang lấy dữ liệu cho {yahoo_symbol} từ Yahoo Finance...")
+            self.logger.info(f"Original symbol: {symbol}, Yahoo symbol: {yahoo_symbol}")
             
             ticker = yf.Ticker(yahoo_symbol)
             data = ticker.history(period=period)
+            
+            self.logger.info(f"Raw data from Yahoo: {data.shape if not data.empty else 'Empty'}")
             
             if data.empty:
                 self.logger.warning(f"Không có dữ liệu cho {yahoo_symbol}")
@@ -51,10 +54,14 @@ class VNAlternativeCollector:
             data['Volatility'] = data['Returns'].rolling(window=20).std()
             
             self.logger.info(f"Đã lấy {len(data)} điểm dữ liệu cho {symbol}")
+            self.logger.info(f"Final data columns: {data.columns.tolist()}")
             return data
             
         except Exception as e:
             self.logger.error(f"Lỗi khi lấy dữ liệu cho {symbol}: {str(e)}")
+            self.logger.error(f"Exception type: {type(e).__name__}")
+            import traceback
+            self.logger.error(f"Traceback: {traceback.format_exc()}")
             return pd.DataFrame()
     
     def get_vn_index_data_yahoo(self, index_code: str = "VNINDEX", period: str = "1y") -> pd.DataFrame:
