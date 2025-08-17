@@ -179,9 +179,9 @@ class PredictionCommands(BaseCommands):
 ✅ <b>Status:</b> Training thành công
 📊 <b>Model Type:</b> LSTM
 📈 <b>Performance:</b>
-• MSE: {result.get('mse', 'N/A'):.4f}
-• MAE: {result.get('mae', 'N/A'):.4f}
-• R²: {result.get('r2', 'N/A'):.4f}
+&#8226; MSE: {result.get('mse', 'N/A'):.4f}
+&#8226; MAE: {result.get('mae', 'N/A'):.4f}
+&#8226; R²: {result.get('r2', 'N/A'):.4f}
 
 💾 <b>Model saved:</b> <code>{model_path}</code>
 """
@@ -201,7 +201,7 @@ class PredictionCommands(BaseCommands):
 📈 <b>Performance:</b>
 """
                 for model_name, metrics in result.get('results', {}).items():
-                    message += f"• {model_name}: MSE={metrics.get('mse', 'N/A'):.4f}\n"
+                    message += f"&#8226; {model_name}: MSE={metrics.get('mse', 'N/A'):.4f}\n"
                 
                 message += f"\n💾 <b>Model saved:</b> <code>{model_path}</code>"
             
@@ -218,40 +218,47 @@ class PredictionCommands(BaseCommands):
                 lstm_status = self.predictor.get_model_performance(symbol, 'lstm')
                 ensemble_status = self.predictor.get_model_performance(symbol, 'ensemble')
                 
+                # Get file paths
+                lstm_file = lstm_status.get('file_path', 'Not found')
+                ensemble_file = ensemble_status.get('file_path', 'Not found')
+                
                 message = f"""
 📊 <b>Model Status - {symbol}</b>
 
 🤖 <b>LSTM Model:</b>
-• Status: {lstm_status.get('status', 'Unknown')}
-• File: <code>{lstm_status.get('file_path', 'Not found')}</code>
+&#8226; Status: {lstm_status.get('status', 'Unknown')}
+&#8226; File: <code>{lstm_file}</code>
 
 🏆 <b>Ensemble Model:</b>
-• Status: {ensemble_status.get('status', 'Unknown')}
-• File: <code>{ensemble_status.get('file_path', 'Not found')}</code>
+&#8226; Status: {ensemble_status.get('status', 'Unknown')}
+&#8226; File: <code>{ensemble_file}</code>
 
 💡 <b>Commands:</b>
-• <code>/train {symbol} lstm</code> - Train LSTM
-• <code>/train {symbol} ensemble</code> - Train Ensemble
-• <code>/predict {symbol} lstm</code> - Predict with LSTM
-• <code>/predict {symbol} ensemble</code> - Predict with Ensemble
+&#8226; <code>/train {symbol} lstm</code> - Train LSTM
+&#8226; <code>/train {symbol} ensemble</code> - Train Ensemble
+&#8226; <code>/predict {symbol} lstm</code> - Predict with LSTM
+&#8226; <code>/predict {symbol} ensemble</code> - Predict with Ensemble
 """
             else:
                 # Check specific model
                 status = self.predictor.get_model_performance(symbol, model_type)
                 
+                # Get file path
+                file_path = status.get('file_path', 'Not found')
+                
                 message = f"""
 📊 <b>Model Status - {symbol} ({model_type.upper()})</b>
 
-• <b>Status:</b> {status.get('status', 'Unknown')}
-• <b>File:</b> <code>{status.get('file_path', 'Not found')}</code>
-• <b>Loaded at:</b> {status.get('loaded_at', 'N/A')}
+&#8226; <b>Status:</b> {status.get('status', 'Unknown')}
+&#8226; <b>File:</b> <code>{file_path}</code>
+&#8226; <b>Loaded at:</b> {status.get('loaded_at', 'N/A')}
 
 💡 <b>Commands:</b>
-• <code>/train {symbol} {model_type}</code> - Train model
-• <code>/predict {symbol} {model_type}</code> - Predict
+&#8226; <code>/train {symbol} {model_type}</code> - Train model
+&#8226; <code>/predict {symbol} {model_type}</code> - Predict
 """
             
-            await update.message.reply_text(message, parse_mode=ParseMode.MARKDOWN)
+            await update.message.reply_text(message, parse_mode=ParseMode.HTML)
             
         except Exception as e:
             await update.message.reply_text(f"❌ Lỗi khi kiểm tra model status: {str(e)}")

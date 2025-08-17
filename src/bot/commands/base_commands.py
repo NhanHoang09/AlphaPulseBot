@@ -15,15 +15,25 @@ class BaseCommands(ABC):
         self.bot = bot_instance
         self.logger = bot_instance.logger
         
-        # Access to bot components
-        self.vn_collector = bot_instance.vn_collector
-        self.us_collector = bot_instance.us_collector
-        self.analyzer = bot_instance.analyzer
-        self.predictor = bot_instance.predictor
-        self.risk_manager = bot_instance.risk_manager
-        self.ai_advisor = bot_instance.ai_advisor
-        self.gpt_assistant = bot_instance.gpt_assistant
-        self.claude_assistant = bot_instance.claude_assistant
+        # Access to core services
+        self.trading_service = bot_instance.trading_service
+        self.market_service = bot_instance.market_service
+        self.config_service = bot_instance.config_service
+        
+        # Access to legacy components for backward compatibility
+        self.vn_collector = bot_instance.trading_service.vn_collector
+        self.us_collector = bot_instance.trading_service.us_collector
+        self.analyzer = bot_instance.trading_service.analyzer
+        self.fundamental_analyzer = bot_instance.trading_service.fundamental_analyzer
+        self.sentiment_analyzer = bot_instance.trading_service.sentiment_analyzer
+        self.advanced_analyzer = bot_instance.trading_service.advanced_analyzer
+        self.options_analyzer = bot_instance.trading_service.options_analyzer
+        self.backtester = bot_instance.trading_service.backtester
+        self.predictor = bot_instance.trading_service.predictor
+        self.risk_manager = bot_instance.trading_service.risk_manager
+        self.ai_advisor = bot_instance.trading_service.ai_advisor
+        self.gpt_assistant = bot_instance.trading_service.gpt_assistant
+        self.claude_assistant = bot_instance.trading_service.claude_assistant
     
     def _escape_markdown(self, text: str) -> str:
         """Escape special characters for Markdown parsing"""

@@ -36,6 +36,33 @@ class PredictionModels:
         # Tạo thư mục lưu models
         os.makedirs(model_save_path, exist_ok=True)
     
+    def load_model_safely(self, model_path: str) -> tf.keras.Model:
+        """
+        Load Keras model with compatibility handling
+        
+        Args:
+            model_path: Path to the model file
+            
+        Returns:
+            Loaded Keras model
+        """
+        try:
+            # First try loading with default settings
+            return tf.keras.models.load_model(model_path)
+        except Exception as e:
+            self.logger.warning(f"Failed to load model with default settings: {e}")
+            
+            try:
+                # Try loading without compilation
+                model = tf.keras.models.load_model(model_path, compile=False)
+                # Recompile with compatible settings
+                model.compile(optimizer='adam', loss='mse', metrics=['mae'])
+                self.logger.info("Model loaded and recompiled successfully")
+                return model
+            except Exception as e2:
+                self.logger.error(f"Failed to load model even without compilation: {e2}")
+                raise e2
+    
     def prepare_data(self, data: pd.DataFrame, target_col: str = 'Close', 
                     lookback: int = 30, prediction_horizon: int = 1, symbol: str = '') -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -572,9 +599,10 @@ class PredictionModels:
                 self.logger.error(f"Lỗi trong evaluation: {str(eval_error)}")
                 return {"error": f"Lỗi evaluation: {str(eval_error)}"}
             
-            # Save model
+            # Save model without compilation to avoid metrics compatibility issues
             model_path = os.path.join(self.model_save_path, f"lstm_{symbol}.h5")
-            model.save(model_path)
+            # Save model architecture and weights without compilation
+            model.save(model_path, include_optimizer=False)
             
             # Save scalers
             scaler_path = os.path.join(self.model_save_path, f"lstm_scaler_{symbol}.pkl")
@@ -744,9 +772,19 @@ class PredictionModels:
                     if not os.path.exists(model_path):
                         return {"error": f"Model {model_key} chưa được training"}
                     
-                    model = tf.keras.models.load_model(model_path)
-                    scaler = joblib.load(scaler_path)
-                    target_scaler = joblib.load(target_scaler_path)
+                    # Load model safely with compatibility handling
+                    try:
+                        model = self.load_model_safely(model_path)
+                    except Exception as load_error:
+                        self.logger.error(f"Failed to load model: {load_error}")
+                        return {"error": f"Không thể load model: {str(load_error)}"}
+                    # Load scalers with error handling
+                    try:
+                        scaler = joblib.load(scaler_path)
+                        target_scaler = joblib.load(target_scaler_path)
+                    except Exception as scaler_error:
+                        self.logger.error(f"Failed to load scalers: {scaler_error}")
+                        return {"error": f"Không thể load scalers: {str(scaler_error)}"}
                     
                     # Chuẩn bị dữ liệu cho prediction
                     lookback = 60  # Default

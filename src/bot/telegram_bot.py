@@ -17,25 +17,11 @@ from telegram.constants import ParseMode
 import sys
 sys.path.append('src')
 
-from src.data.vn_alternative_collector import VNAlternativeCollector
-from src.data.data_collector import DataCollector
-from src.analysis.technical_analysis import TechnicalAnalyzer
-from src.ml.prediction_models import PredictionModels
-from src.risk.risk_manager import RiskManager
-from src.ai.investment_advisor import AIInvestmentAdvisor
-from src.ai.gpt_assistant import GPTAssistant
-from src.ai.fingpt_model import FinGPTModel
-from src.ai.claude_assistant import ClaudeAssistant
+# Import core services
+from src.core.services import TradingService, MarketService, ConfigurationService
 
 # Import modular commands
-from .commands import (
-    AICommands,
-    PredictionCommands,
-    PortfolioCommands,
-    AssistantCommands,
-    UtilityCommands,
-    ButtonHandlers
-)
+from .commands.factory import CommandFactory
 
 class FinGPTTelegramBot:
     """Modular Telegram Bot cho FinGPT"""
@@ -44,40 +30,37 @@ class FinGPTTelegramBot:
         self.token = token
         self.logger = logging.getLogger(__name__)
         
-        # Initialize FinGPT components
-        self.vn_collector = VNAlternativeCollector()
-        self.us_collector = DataCollector()
-        self.analyzer = TechnicalAnalyzer()
-        self.predictor = PredictionModels()
-        self.risk_manager = RiskManager()
-        self.ai_advisor = AIInvestmentAdvisor()
-        self.gpt_assistant = GPTAssistant(model_name="gpt_assistant:latest")  # Ollama model
-        self.fingpt_model = FinGPTModel()  # Custom FinGPT model
-        
-        # Initialize Claude Assistant
-        try:
-            self.claude_assistant = ClaudeAssistant()
-            self.logger.info("Claude Assistant initialized successfully")
-        except Exception as e:
-            self.logger.warning(f"Failed to initialize Claude Assistant: {e}")
-            self.claude_assistant = None
+        # Initialize core services
+        self.trading_service = TradingService()
+        self.market_service = MarketService(self.trading_service)
+        self.config_service = ConfigurationService()
         
         # User sessions and tracking
         self.user_sessions = {}
         self.welcomed_users = set()  # Track users who have been welcomed
         
+        # Initialize command factory
+        self.command_factory = CommandFactory()
+        
         # Initialize modular command handlers
         self._init_command_handlers()
     
     def _init_command_handlers(self):
-        """Initialize all command handlers"""
-        # Initialize command classes with bot instance
-        self.ai_commands = AICommands(self)
-        self.prediction_commands = PredictionCommands(self)
-        self.portfolio_commands = PortfolioCommands(self)
-        self.assistant_commands = AssistantCommands(self)
-        self.utility_commands = UtilityCommands(self)
-        self.button_handlers = ButtonHandlers(self)
+        """Initialize all command handlers using factory"""
+        # Get all command instances
+        all_commands = self.command_factory.get_all_commands(self)
+        
+        # Assign to instance variables
+        self.ai_commands = all_commands['ai']
+        self.prediction_commands = all_commands['prediction']
+        self.portfolio_commands = all_commands['portfolio']
+        self.assistant_commands = all_commands['assistant']
+        self.utility_commands = all_commands['utility']
+        self.button_handlers = all_commands['button']
+        self.fundamental_commands = all_commands['fundamental']
+        self.sentiment_commands = all_commands['sentiment']
+        self.backtest_commands = all_commands['backtest']
+        self.advanced_commands = all_commands['advanced']
     
     def run(self):
         """Run the bot"""
@@ -102,6 +85,9 @@ class FinGPTTelegramBot:
         
         # AI Commands
         application.add_handler(CommandHandler("stock", self.ai_commands.stock_command))
+        application.add_handler(CommandHandler("quick", self.ai_commands.quick_command))
+        application.add_handler(CommandHandler("scan", self.ai_commands.scan_command))
+        application.add_handler(CommandHandler("check", self.ai_commands.check_command))
         
         # Prediction Commands
         application.add_handler(CommandHandler("predict", self.prediction_commands.predict_command))
@@ -111,6 +97,29 @@ class FinGPTTelegramBot:
         # Portfolio Commands
         application.add_handler(CommandHandler("portfolio", self.portfolio_commands.portfolio_command))
         application.add_handler(CommandHandler("risk", self.portfolio_commands.risk_command))
+        
+        # Fundamental Commands
+        application.add_handler(CommandHandler("fundamental", self.fundamental_commands.fundamental_command))
+        application.add_handler(CommandHandler("ratios", self.fundamental_commands.ratios_command))
+        application.add_handler(CommandHandler("earnings", self.fundamental_commands.earnings_command))
+        
+        # Sentiment Commands
+        application.add_handler(CommandHandler("sentiment", self.sentiment_commands.sentiment_command))
+        application.add_handler(CommandHandler("news", self.sentiment_commands.news_command))
+        application.add_handler(CommandHandler("market", self.sentiment_commands.market_command))
+        application.add_handler(CommandHandler("sector", self.sentiment_commands.sector_command))
+        
+        # Backtesting Commands
+        application.add_handler(CommandHandler("backtest", self.backtest_commands.backtest_command))
+        application.add_handler(CommandHandler("strategy", self.backtest_commands.strategy_command))
+        application.add_handler(CommandHandler("performance", self.backtest_commands.performance_command))
+        
+        # Advanced Technical Commands
+        application.add_handler(CommandHandler("fibonacci", self.advanced_commands.fibonacci_command))
+        application.add_handler(CommandHandler("elliott", self.advanced_commands.elliott_command))
+        application.add_handler(CommandHandler("volume", self.advanced_commands.volume_command))
+        application.add_handler(CommandHandler("ichimoku", self.advanced_commands.ichimoku_command))
+        application.add_handler(CommandHandler("options", self.advanced_commands.options_command))
         
         # Assistant Commands
         application.add_handler(CommandHandler("ask", self.assistant_commands.ask_command))

@@ -1,39 +1,42 @@
 # Core dependencies
-pandas>=2.0.0
-numpy>=1.24.0
-scikit-learn>=1.3.0
-protobuf>=4.25.0
-tensorflow>=2.15.0
-keras>=2.15.0
+python-telegram-bot==20.7
+pandas==2.1.3
+numpy==1.26.4
+requests==2.32.4
 
-# Financial data and analysis
-yfinance>=0.2.0
-alpha-vantage>=2.3.0
-ta>=0.10.0
-pandas-ta>=0.3.0
+# Data collection
+yfinance==0.2.36
+beautifulsoup4==4.12.2
+lxml==5.1.0
+
+# Technical analysis
+ta==0.11.0
+scipy==1.15.3
+
+# Machine learning
+scikit-learn==1.4.0
+tensorflow==2.16.2
+keras==3.11.1
+
+# Visualization
+matplotlib==3.8.2
+plotly==5.17.0
+seaborn==0.13.0
 
 # Web framework
-streamlit>=1.29.0
-plotly>=5.17.0
-dash>=2.16.0
+streamlit==1.29.0
 
-# Data visualization
-matplotlib>=3.8.0
-seaborn>=0.13.0
+# Configuration
+python-dotenv==1.0.0
 
-# Time series analysis
-statsmodels>=0.14.0
-prophet>=1.1.0
+# AI and NLP
+openai==1.12.0
+anthropic==0.18.1
 
-# API and data handling
-requests>=2.31.0
-python-dotenv>=1.0.0
-anthropic>=0.7.0
-
-# Database
-sqlite3
+# Financial analysis
+yfinance==0.2.36
+pandas-ta==0.3.14b
 
 # Utilities
-schedule>=1.2.0
-python-telegram-bot>=20.7
-asyncio 
+python-dateutil==2.8.2
+pytz==2023.3 
